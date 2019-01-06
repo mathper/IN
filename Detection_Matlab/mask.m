@@ -1,3 +1,4 @@
+%Crée le masque d'une image de référence
 close all;
 clear;
 

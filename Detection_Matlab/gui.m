@@ -57,6 +57,7 @@ handles.output = hObject;
 
 
 handles.mpic=uimenu('Label','Images','Callback', {@Open_Images_Callback});
+handles.mpic=uimenu('Label','Références','Callback', {@Open_Masks_Callback});
 
 % Update handles structure
 guidata(hObject, handles);
@@ -84,9 +85,13 @@ function Open_Images_Callback(hObject, eventdata, handles)
 handles=guidata(hObject);
 
 % Open file selection dialog box
-[Filename,PathName]=uigetfile('*.png','Sélectionner une image');
+[Filename,PathName]=uigetfile('../images/*.png','Sélectionner une image');
 
 if (Filename ~= 0)
+    
+    handles.file='image';
+    
+    clear handles.Images;
     
     % Reset plot
     cla(handles.c1c2c3_img,'reset');
@@ -99,15 +104,70 @@ if (Filename ~= 0)
     set(handles.bounding_rec,'visible','off');
     set(handles.mask,'visible','off');
     
+    set(handles.nb_detection, 'String', ['']);
+    set(handles.w_detection, 'String', ['']);
+    set(handles.n_detection, 'String', ['']);
+    
     % Display
     handles.Images.Original=imread(fullfile(PathName, Filename));
     
     handles.f_size = 1000/size(handles.Images.Original,1);
-    handles.Images.Original = imresize(handles.Images.Original, handles.f_size);
-    imshow(handles.Images.Original,'Parent',handles.orig_img);
+    imshow(imresize(handles.Images.Original, handles.f_size),'Parent',handles.orig_img);
     title(handles.orig_img, 'Image aérienne');
 
-    set(handles.start,'Enable','on')
+    set(handles.start,'Enable','on');
+end
+
+guidata(hObject,handles);
+
+% --- Executes on button press in Open_Images.
+function Open_Masks_Callback(hObject, eventdata, handles)
+% hObject    handle to Open_Images (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles=guidata(hObject);
+
+% Open file selection dialog box
+[Filename,PathName]=uigetfile('../references/*.png','Sélectionner une image de référence');
+
+if (Filename ~= 0)
+    
+    clear handles.Images;
+    
+    handles.file='ref';
+    
+    % Reset plot
+    cla(handles.c1c2c3_img,'reset');
+    cla(handles.seg_img,'reset');
+    cla(handles.bounding_rec,'reset');
+    cla(handles.mask,'reset');
+    
+    set(handles.c1c2c3_img,'visible','off');
+    set(handles.seg_img,'visible','off');
+    set(handles.bounding_rec,'visible','off');
+    set(handles.mask,'visible','off');
+    
+    set(handles.nb_detection, 'String', ['']);
+    set(handles.w_detection, 'String', ['']);
+    set(handles.n_detection, 'String', ['']);
+    
+    % Display
+    handles.Images.Original=imread(['../images/' Filename]);
+    ref_img=imread(['../references/' Filename]);
+    handles.Images.ref_mask=imread(['../references/masks/' Filename(1:end-4) '_m.png']);
+    
+    handles.f_size = 1000/size(handles.Images.Original,1);
+    imshow(imresize(handles.Images.Original, handles.f_size),'Parent',handles.orig_img);
+    title(handles.orig_img, 'Image originale');
+    
+    imshow(imresize(ref_img, handles.f_size),'Parent',handles.c1c2c3_img);
+    title(handles.c1c2c3_img, 'Image de référence');
+    
+    imshow(imresize(handles.Images.ref_mask, handles.f_size),'Parent',handles.mask);
+    title(handles.mask, 'Masque de référence');
+
+    set(handles.start,'Enable','on');
 end
 
 guidata(hObject,handles);
@@ -118,4 +178,9 @@ function start_Callback(hObject, eventdata, handles)
 % hObject    handle to start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-start_process(hObject);
+if(strcmp(handles.file,'image'))
+    start_process(hObject);
+else
+    checkWithReference(hObject);
+end
+    

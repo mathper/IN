@@ -1,4 +1,5 @@
 function img=drawArea(img, BW)
+%Dessine les zones définies par le masque BW sur l'image img
 
     t1 = img(:,:,1);
     t2 = img(:,:,2);

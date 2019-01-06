@@ -1,18 +1,18 @@
-function compareMasks(img, S_final, S_ref)
+function [rightly_detected, wrongly_detected, not_detected] = compareMasks(axe, S_final, S_ref, f_size)
+%Compare les groupes de rectangles englobant S_final et S_ref, dessine sur axe
 
-    figure;imshow(img);
-    hold on;
-    
     for i=1:size(S_final,1)
-        rectangle('Position',S_final(i).BoundingBox,'EdgeColor','r','LineWidth',1);
+        rectangle(axe, 'Position',S_final(i).BoundingBox*f_size,'EdgeColor','r','LineWidth',1);
     end
     
     for i=1:size(S_ref,1)
-        rectangle('Position',S_ref(i).BoundingBox,'EdgeColor','y','LineWidth',1);
+        rectangle(axe, 'Position',S_ref(i).BoundingBox*f_size,'EdgeColor','y','LineWidth',1);
     end
     
     
+    %Elements correctement détectés
     rightly_detected = 0;
+    %Elements mal détectés
     wrongly_detected = 0;
     for i=1:size(S_final,1)
         res=0;
@@ -31,6 +31,7 @@ function compareMasks(img, S_final, S_ref)
         end
     end
     
+    %Elements non détectés
     not_detected=size(S_ref,1)-rightly_detected;
     
 end

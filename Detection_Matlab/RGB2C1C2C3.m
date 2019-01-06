@@ -1,4 +1,5 @@
 function I = RGB2C1C2C3(img)
+%Convertion RGB vers R'G'B'
 
     max_v = max(max(max(img(:,:,:))));
     min_v = min(min(min(img(:,:,:))));

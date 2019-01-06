@@ -1,4 +1,5 @@
-function BW = checkComponants(img, BW)
+function BW = checkComponants(BW)
+%Fermeture morphologique sur BW + gestion du bruit
 
     se = strel('disk',5);
     BW=imclose(BW,se);
