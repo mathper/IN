@@ -22,7 +22,7 @@ function varargout = gui(varargin)
 
 % Edit the above text to modify the response to help gui
 
-% Last Modified by GUIDE v2.5 04-Jan-2019 14:58:56
+% Last Modified by GUIDE v2.5 06-Jan-2019 16:40:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -88,6 +88,7 @@ handles=guidata(hObject);
 [Filename,PathName]=uigetfile('../images/*.png','Sélectionner une image');
 
 if (Filename ~= 0)
+    set(handles.save,'Enable','off');
     
     handles.file='image';
     
@@ -114,8 +115,11 @@ if (Filename ~= 0)
     handles.f_size = 1000/size(handles.Images.Original,1);
     imshow(imresize(handles.Images.Original, handles.f_size),'Parent',handles.orig_img);
     title(handles.orig_img, 'Image aérienne');
+    
+    handles.filename=Filename(1:end-4);
 
     set(handles.start,'Enable','on');
+    
 end
 
 guidata(hObject,handles);
@@ -132,42 +136,50 @@ handles=guidata(hObject);
 [Filename,PathName]=uigetfile('../references/*.png','Sélectionner une image de référence');
 
 if (Filename ~= 0)
+    set(handles.save,'Enable','off');
     
-    clear handles.Images;
+    %Verifie si l'image selectionnée est bien une image de référence
+    if(isfile(['../references/masks/' Filename(1:end-4) '_m.png']))
     
-    handles.file='ref';
-    
-    % Reset plot
-    cla(handles.c1c2c3_img,'reset');
-    cla(handles.seg_img,'reset');
-    cla(handles.bounding_rec,'reset');
-    cla(handles.mask,'reset');
-    
-    set(handles.c1c2c3_img,'visible','off');
-    set(handles.seg_img,'visible','off');
-    set(handles.bounding_rec,'visible','off');
-    set(handles.mask,'visible','off');
-    
-    set(handles.nb_detection, 'String', ['']);
-    set(handles.w_detection, 'String', ['']);
-    set(handles.n_detection, 'String', ['']);
-    
-    % Display
-    handles.Images.Original=imread(['../images/' Filename]);
-    ref_img=imread(['../references/' Filename]);
-    handles.Images.ref_mask=imread(['../references/masks/' Filename(1:end-4) '_m.png']);
-    
-    handles.f_size = 1000/size(handles.Images.Original,1);
-    imshow(imresize(handles.Images.Original, handles.f_size),'Parent',handles.orig_img);
-    title(handles.orig_img, 'Image originale');
-    
-    imshow(imresize(ref_img, handles.f_size),'Parent',handles.c1c2c3_img);
-    title(handles.c1c2c3_img, 'Image de référence');
-    
-    imshow(imresize(handles.Images.ref_mask, handles.f_size),'Parent',handles.mask);
-    title(handles.mask, 'Masque de référence');
+        clear handles.Images;
 
-    set(handles.start,'Enable','on');
+        handles.file='ref';
+
+        % Reset plot
+        cla(handles.c1c2c3_img,'reset');
+        cla(handles.seg_img,'reset');
+        cla(handles.bounding_rec,'reset');
+        cla(handles.mask,'reset');
+
+        set(handles.c1c2c3_img,'visible','off');
+        set(handles.seg_img,'visible','off');
+        set(handles.bounding_rec,'visible','off');
+        set(handles.mask,'visible','off');
+
+        set(handles.nb_detection, 'String', ['']);
+        set(handles.w_detection, 'String', ['']);
+        set(handles.n_detection, 'String', ['']);
+
+        % Display
+        handles.Images.Original=imread(['../images/' Filename]);
+        ref_img=imread(['../references/' Filename]);
+        handles.Images.ref_mask=imread(['../references/masks/' Filename(1:end-4) '_m.png']);
+
+        handles.f_size = 1000/size(handles.Images.Original,1);
+        imshow(imresize(handles.Images.Original, handles.f_size),'Parent',handles.orig_img);
+        title(handles.orig_img, 'Image originale');
+
+        imshow(imresize(ref_img, handles.f_size),'Parent',handles.c1c2c3_img);
+        title(handles.c1c2c3_img, 'Image de référence');
+
+        imshow(imresize(handles.Images.ref_mask, handles.f_size),'Parent',handles.mask);
+        title(handles.mask, 'Masque de référence');
+
+        set(handles.start,'Enable','on');
+    
+    else
+        f = msgbox('L''image selectionnée n''est pas une image de référence.');
+    end
 end
 
 guidata(hObject,handles);
@@ -180,7 +192,22 @@ function start_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 if(strcmp(handles.file,'image'))
     start_process(hObject);
+    set(handles.save,'Enable','on');
 else
     checkWithReference(hObject);
 end
     
+
+
+% --- Executes on button press in save.
+function save_Callback(hObject, eventdata, handles)
+% hObject    handle to save (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+fid = fopen(['bounding_boxes/' handles.filename '.txt'], 'wt');
+for i=1:size(handles.boxes,1)
+    fprintf(fid, '%d %d %d %d\n', handles.boxes(i).BoundingBox);
+end
+fclose(fid);
+set(handles.save,'Enable','off');

@@ -38,6 +38,8 @@ function start_process(hObject)
     %Rectangles englobants
     S = boundingRectangle(mask);
     
+    handles.boxes = S;
+    
     clear mask;
 
     %Dessine les rectangles englobants des piscines détectées
